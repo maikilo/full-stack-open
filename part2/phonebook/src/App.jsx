@@ -89,10 +89,10 @@ const App = () => {
           <h2>Phonebook</h2>
           <Filter eventHandlerFn={handleFilterChange} />
 
-          <h2>Add new contact</h2>
+          <h3>Add new contact</h3>
           <PersonForm props={{addContact, handleNumberChange, handleNameChange}} />
 
-          <h2>Numbers</h2>
+          <h3>Numbers</h3>
           <ContactList persons={persons} filter={newFilter}/>
       </div>
     )
