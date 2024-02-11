@@ -1,19 +1,21 @@
 import { useState, useEffect } from 'react'
-import axios from "axios";
+import contactService from "./services/persons.js"
+import {render} from "react-dom";
 
-const ContactInfo = ({name, number, filter}) => {
-    if (name.toLowerCase().includes(filter)) {
+const ContactInfo = ({person, filter, action}) => {
+    if (person.name.toLowerCase().includes(filter)) {
         return (
-            <p>{name} {number}</p>
+            <p>
+                {person.name} {person['number']} <button key={person.id} onClick={() => action(person.id)}>delete</button>
+            </p>
         )
     }
 }
 
-const ContactList = ({persons, filter}) => {
+const ContactList = ({persons, filter, onClickFn}) => {
     return (
         <div>
-            {persons.map(person =>
-                    <ContactInfo key={person.id} name={person.name} number={person.number} filter={filter} />)}
+            {persons.map(person => <ContactInfo key={person.id} person={person} filter={filter} action={onClickFn}/>)}
         </div>
     )
 }
@@ -42,21 +44,33 @@ const Filter = ({eventHandlerFn}) => {
     )
 }
 
+const Notification = ({ message }) => {
+  if (message === null) {
+    return null
+  }
+  return (
+    <div className='notification'>
+      {message}
+    </div>
+  )
+}
+
 const App = () => {
     const [persons, setPersons] = useState([])
     // const [persons, setPersons] = useState(data)
     const [newName, setNewName] = useState('')
     const [newNumber, setNewNumber] = useState('')
     const [newFilter, setNewFilter] = useState('')
+    const [notification, setNotification] = useState(null)
 
     useEffect(() => {
         console.log('effect')
-        axios.get('http://localhost:3001/persons').then(response => {
-            console.log('promise fulfilled')
+        contactService
+            .getAll()
+            .then(response => {
             setPersons(response.data)
         })
     }, [])
-    console.log('persons', persons)
 
     const addContact = (event) => {
         event.preventDefault()
@@ -69,10 +83,48 @@ const App = () => {
             alert(`${newName} is already in the list`)
         } else {
             console.log('Name is not in the list, adding it to the list')
-            const newPerson = { name: newName, number: newNumber, id: persons.length + 1 }
-            setPersons(persons.concat(newPerson))
-        }
+            const newPerson = { id: persons.length + 1, name: newName, number: newNumber}
 
+            setNotification(`Added ${newName}`)
+            setTimeout(() => {
+                setNotification(null)
+            }, 4000)
+
+            contactService
+                .createContact(newPerson)
+                .then(response => {
+                    console.log(response)
+                    setPersons(persons.concat(newPerson))
+                })
+        }
+    }
+
+    const removeContact = (idToDel) => {
+        const personToDelete = persons.filter((person) => person.id == idToDel)
+        console.log(personToDelete[0])
+
+        if (confirm(`Delete ${personToDelete[0].name}?`)) {
+            const filteredPersons = persons.filter((person) => person.id != idToDel)
+            console.log('Filtered persons', filteredPersons)
+            const reindexedPersons = []
+            filteredPersons.forEach((person, i) => {
+                person = {id: i + 1, name: person.name, number: person.number}
+                console.log(person)
+                reindexedPersons[i] = person
+            })
+            console.log('Reindexed persons', reindexedPersons)
+
+            contactService
+                .deleteContact(idToDel)
+                .then(response => {
+                    console.log(response)
+                    setPersons(reindexedPersons)
+                    console.log('Successfully deleted.')
+                })
+                .catch(error => {
+                    console.log('Failed to delete', error)
+                })
+        }
     }
 
     const handleNameChange = (event) => {
@@ -93,13 +145,14 @@ const App = () => {
     return (
       <div>
           <h2>Phonebook</h2>
+          <Notification message={notification}/>
           <Filter eventHandlerFn={handleFilterChange} />
 
           <h3>Add new contact</h3>
           <PersonForm props={{addContact, handleNumberChange, handleNameChange}} />
 
           <h3>Numbers</h3>
-          <ContactList persons={persons} filter={newFilter}/>
+          <ContactList persons={persons} filter={newFilter} onClickFn={removeContact}/>
       </div>
     )
 }
