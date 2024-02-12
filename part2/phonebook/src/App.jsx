@@ -55,6 +55,17 @@ const Notification = ({ message }) => {
   )
 }
 
+const Error = ({ message }) => {
+  if (message === null) {
+    return null
+  }
+  return (
+    <div className='error'>
+      {message}
+    </div>
+  )
+}
+
 const App = () => {
     const [persons, setPersons] = useState([])
     // const [persons, setPersons] = useState(data)
@@ -62,6 +73,7 @@ const App = () => {
     const [newNumber, setNewNumber] = useState('')
     const [newFilter, setNewFilter] = useState('')
     const [notification, setNotification] = useState(null)
+    const [error, setError] = useState(null)
 
     useEffect(() => {
         console.log('effect')
@@ -91,12 +103,20 @@ const App = () => {
                 .then(response => {
                     console.log(response)
                     setPersons(updatedPersons)
+                    setNotification(`Updated contact ${newName}`)
+                    setTimeout(() => {
+                        setNotification(null)
+                    }, 4000)
+                })
+                .catch(error => {
+                    console.log('Failed to delete', error)
+                    setError(`Information of ${newName} has already been removed from server`)
+                    setTimeout(() => {
+                        setNotification(null)
+                    }, 4000)
                 })
 
-                setNotification(`Updated contact ${newName}`)
-                setTimeout(() => {
-                    setNotification(null)
-                }, 4000)
+
 
             }
 
@@ -166,6 +186,7 @@ const App = () => {
       <div>
           <h2>Phonebook</h2>
           <Notification message={notification}/>
+          <Error message={error} />
           <Filter eventHandlerFn={handleFilterChange} />
 
           <h3>Add new contact</h3>
