@@ -80,15 +80,30 @@ const App = () => {
         const namesList = persons.map(person => person.name.toLowerCase())
 
         if (namesList.includes(newName.toLowerCase())) {
-            alert(`${newName} is already in the list`)
+
+            if (confirm(`${newName} is already added to phonebook, replace the old number with a new one?`)) {
+                const oldPerson = persons.filter((person) => person.name.toLowerCase() == newName.toLowerCase())[0]
+                const updatedPerson = { id: oldPerson.id, name: oldPerson.name, number: newNumber}
+                const updatedPersons = persons.map((person) => person.name.toLowerCase() == newName.toLowerCase() ? updatedPerson : person)
+
+                contactService
+                .updateContact(oldPerson.id, updatedPerson)
+                .then(response => {
+                    console.log(response)
+                    setPersons(updatedPersons)
+                })
+
+                setNotification(`Updated contact ${newName}`)
+                setTimeout(() => {
+                    setNotification(null)
+                }, 4000)
+
+            }
+
         } else {
+
             console.log('Name is not in the list, adding it to the list')
             const newPerson = { id: persons.length + 1, name: newName, number: newNumber}
-
-            setNotification(`Added ${newName}`)
-            setTimeout(() => {
-                setNotification(null)
-            }, 4000)
 
             contactService
                 .createContact(newPerson)
@@ -96,6 +111,11 @@ const App = () => {
                     console.log(response)
                     setPersons(persons.concat(newPerson))
                 })
+
+            setNotification(`Added ${newName}`)
+            setTimeout(() => {
+                setNotification(null)
+            }, 4000)
         }
     }
 
