@@ -4,20 +4,11 @@ const baseUrl = 'https://studies.cs.helsinki.fi/restcountries/'
 import countryService from "./services/countries.js"
 
 
-const Notification = ({ message }) => {
-    console.log("message", message)
-    if (message === null) {
-        return null
-    }
-    return (
-        <div>
-            {message}
-        </div>
-    )
-}
-
 const Country = ({country}) => {
     console.log(country)
+    if (country === null) {
+        return null
+    }
     const languages = country.languages
     return (
         <div>
@@ -33,11 +24,9 @@ const Country = ({country}) => {
     )
 }
 
-const CountryList = ({countries, filter}) => {
+const CountryList = ({filteredCountries, handleClick}) => {
     console.log("You're in CountryList!")
     // console.log("countries", countries)
-    const filteredCountries = countries.filter(country => country.name.common.toLowerCase().includes(filter))
-    console.log("filtered", filteredCountries)
 
     if (filteredCountries.length == 1) {
         const oneCountry = filteredCountries[0]
@@ -55,7 +44,11 @@ const CountryList = ({countries, filter}) => {
 
     return (
         <div>
-            {filteredCountries.map((row, idx) => <p key={idx}>{row.name.common}</p>)}
+            {filteredCountries.map((row, idx) =>
+                <p key={idx}>
+                    {row.name.common} <button key={idx} onClick={() => handleClick(row)}>show</button>
+                </p>
+            )}
         </div>
     )
 }
@@ -71,8 +64,8 @@ const Filter = ({eventHandlerFn}) => {
 function App() {
     const [countries, setCountries] = useState([])
     const [filter, setFilter] = useState("")
-    const [message, setMessage] = useState("")
-    const [selectedCountry, setSelectedCountry] = useState({})
+    const [filteredCountries, setFilteredCountries] = useState([])
+    const [selectedCountry, setSelectedCountry] = useState(null)
 
     useEffect(() => {
         console.log('effect')
@@ -80,25 +73,33 @@ function App() {
             .getAll()
             .then(response => {
                 setCountries(response.data)
+                setFilteredCountries(response.data)
             })
             .catch(error => {
                 console.log('Failed', error)
             })
-        // console.log('countries', countries)
-        // setMessage("Too many matches, specify a filter")
     }, [])
 
     const handleFilterChange = (event) => {
         setFilter(event.target.value.toLowerCase())
         console.log('New filter', filter)
+        const newFilteredCountries = countries.filter(country => country.name.common.toLowerCase().includes(filter))
+        setFilteredCountries(newFilteredCountries)
+        setSelectedCountry(null)
+        console.log("filtered", filteredCountries)
+    }
+
+    const handleClick = (country) => {
+        console.log('button clicked')
+        setSelectedCountry(country)
     }
 
     return (
       <div>
           <h1>Countries</h1>
           <Filter eventHandlerFn={handleFilterChange} />
-          <Notification message={message} />
-          <CountryList countries={countries} filter={filter} setSelectedCountry={setSelectedCountry}/>
+          <Country country={selectedCountry} />
+          <CountryList filteredCountries={filteredCountries} handleClick={handleClick}/>
       </div>
     )
 }
