@@ -1,70 +1,11 @@
 import { useState, useEffect } from 'react'
 import contactService from "./services/persons.js"
+import Filter from "./components/Filter.jsx"
+import PersonForm from "./components/PersonForm.jsx"
+import ContactList from "./components/ContactList.jsx"
+import Notification from './components/Notification.jsx'
 import {render} from "react-dom";
 
-const ContactInfo = ({person, filter, action}) => {
-    if (person.name.toLowerCase().includes(filter)) {
-        return (
-            <p>
-                {person.name} {person['number']} <button key={person.id} onClick={() => action(person.id)}>delete</button>
-            </p>
-        )
-    }
-}
-
-const ContactList = ({persons, filter, onClickFn}) => {
-    return (
-        <div>
-            {persons.map(person => <ContactInfo key={person.id} person={person} filter={filter} action={onClickFn}/>)}
-        </div>
-    )
-}
-
-const PersonForm = ({props}) => {
-    return (
-        <form onSubmit={props.addContact}>
-            <div>
-                name: <input onChange={props.handleNameChange}/>
-            </div>
-            <div>
-                number: <input onChange={props.handleNumberChange}/>
-            </div>
-            <div>
-                <button type="submit">add</button>
-            </div>
-        </form>
-    )
-}
-
-const Filter = ({eventHandlerFn}) => {
-    return (
-        <div>
-            filter shown with: <input onChange={eventHandlerFn}/>
-        </div>
-    )
-}
-
-const Notification = ({ message }) => {
-  if (message === null) {
-    return null
-  }
-  return (
-    <div className='notification'>
-      {message}
-    </div>
-  )
-}
-
-const Error = ({ message }) => {
-  if (message === null) {
-    return null
-  }
-  return (
-    <div className='error'>
-      {message}
-    </div>
-  )
-}
 
 const App = () => {
     const [persons, setPersons] = useState([])
@@ -185,8 +126,8 @@ const App = () => {
     return (
       <div>
           <h2>Phonebook</h2>
-          <Notification message={notification}/>
-          <Error message={error} />
+          <Notification message={notification} type={'notification'}/>
+          <Notification message={error} type={'error'} />
           <Filter eventHandlerFn={handleFilterChange} />
 
           <h3>Add new contact</h3>
