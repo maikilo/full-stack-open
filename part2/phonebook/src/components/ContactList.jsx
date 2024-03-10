@@ -8,10 +8,10 @@ const ContactInfo = ({person, filter, action}) => {
     }
 }
 
-const ContactList = ({persons, filter, onClickFn}) => {
+const ContactList = ({persons, filter, removeContact}) => {
     return (
         <div>
-            {persons.map(person => <ContactInfo key={person.id} person={person} filter={filter} action={onClickFn}/>)}
+            {persons.map(person => <ContactInfo key={person.id} person={person} filter={filter} action={removeContact}/>)}
         </div>
     )
 }
