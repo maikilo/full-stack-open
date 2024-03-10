@@ -4,15 +4,13 @@ import Filter from "./components/Filter.jsx"
 import PersonForm from "./components/PersonForm.jsx"
 import ContactList from "./components/ContactList.jsx"
 import Notification from './components/Notification.jsx'
-import {render} from "react-dom";
 
 
 const App = () => {
     const [persons, setPersons] = useState([])
-    // const [persons, setPersons] = useState(data)
     const [newName, setNewName] = useState('')
     const [newNumber, setNewNumber] = useState('')
-    const [newFilter, setNewFilter] = useState('')
+    const [filter, setFilter] = useState('')
     const [notification, setNotification] = useState(null)
     const [error, setError] = useState(null)
 
@@ -64,7 +62,7 @@ const App = () => {
         } else {
 
             console.log('Name is not in the list, adding it to the list')
-            const newPerson = { id: persons.length + 1, name: newName, number: newNumber}
+            const newPerson = { id: (persons.length + 1).toString(), name: newName, number: newNumber}
 
             contactService
                 .createContact(newPerson)
@@ -82,7 +80,7 @@ const App = () => {
 
     const removeContact = (idToDel) => {
         const personToDelete = persons.filter((person) => person.id == idToDel)
-        console.log(personToDelete[0])
+        console.log('person to be deleted', personToDelete[0])
 
         if (confirm(`Delete ${personToDelete[0].name}?`)) {
             const filteredPersons = persons.filter((person) => person.id != idToDel)
@@ -98,7 +96,7 @@ const App = () => {
             contactService
                 .deleteContact(idToDel)
                 .then(response => {
-                    console.log(response)
+                    console.log('Sent delete request', response)
                     setPersons(reindexedPersons)
                     console.log('Successfully deleted.')
                 })
@@ -108,19 +106,19 @@ const App = () => {
         }
     }
 
-    const handleNameChange = (event) => {
-        setNewName(event.target.value)
+    const handleNameChange = (value) => {
+        setNewName(value)
         console.log('New name', newName)
     }
 
-    const handleNumberChange = (event) => {
-        setNewNumber(event.target.value)
+    const handleNumberChange = (value) => {
+        setNewNumber(value)
         console.log('New number', newNumber)
     }
 
-    const handleFilterChange = (event) => {
-        setNewFilter(event.target.value.toLowerCase())
-        console.log('New filter', newFilter)
+    const handleFilterChange = (value) => {
+        setFilter(value.toLowerCase())
+        console.log('New filter', filter)
     }
 
     return (
@@ -128,13 +126,19 @@ const App = () => {
           <h2>Phonebook</h2>
           <Notification message={notification} type={'notification'}/>
           <Notification message={error} type={'error'} />
-          <Filter eventHandlerFn={handleFilterChange} />
+          <Filter filter={filter} handleFilterChange={handleFilterChange} />
 
           <h3>Add new contact</h3>
-          <PersonForm props={{addContact, handleNumberChange, handleNameChange}} />
+          <PersonForm 
+            addContact={addContact}
+            newName={newName}
+            newNumber={newNumber}
+            handleNameChange={handleNameChange}
+            handleNumberChange={handleNumberChange}
+          />
 
           <h3>Numbers</h3>
-          <ContactList persons={persons} filter={newFilter} onClickFn={removeContact}/>
+          <ContactList persons={persons} filter={filter} removeContact={removeContact}/>
       </div>
     )
 }
