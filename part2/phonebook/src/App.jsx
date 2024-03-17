@@ -23,82 +23,67 @@ const App = () => {
         })
     }, [])
 
+    const updatePerson = (person) => {
+        const ok = window.confirm(`${newName} is already added to phonebook, replace the number?`)
+        if (ok) {
+          
+          contactService
+          .updateContact(person.id, {...person, number: newNumber})
+          .then((updatedPerson) => {
+            setPersons(persons.map(p => p.id !== person.id ? p :updatedPerson ))
+            setNotification(`Updated contact ${newName}`)
+            setTimeout(() => {
+                setNotification(null)
+            }, 4000)
+          })
+          .catch(error => {
+            console.log('Failed to delete', error)
+            setPersons(persons.filter(p => p.id !== person.id))
+            setError(`Information of ${newName} has already been removed from server`)
+            setTimeout(() => {
+                setNotification(null)
+            }, 4000)
+          })
+
+          cleanForm()
+        }
+    }
+
     const addContact = (event) => {
         event.preventDefault()
         console.log('User trying to add new contact', newName)
         console.log('Persons in list', persons.map(person => person.name))
+        const person = persons.find(p => p.name === newName)
 
-        const namesList = persons.map(person => person.name.toLowerCase())
+        if (person) {
+            updatePerson(person)
+            return
+        }
 
-        if (namesList.includes(newName.toLowerCase())) {
-
-            if (confirm(`${newName} is already added to phonebook, replace the old number with a new one?`)) {
-                const oldPerson = persons.filter((person) => person.name.toLowerCase() == newName.toLowerCase())[0]
-                const updatedPerson = { id: oldPerson.id, name: oldPerson.name, number: newNumber}
-                const updatedPersons = persons.map((person) => person.name.toLowerCase() == newName.toLowerCase() ? updatedPerson : person)
-
-                contactService
-                .updateContact(oldPerson.id, updatedPerson)
-                .then(response => {
-                    console.log(response)
-                    setPersons(updatedPersons)
-                    setNotification(`Updated contact ${newName}`)
-                    setTimeout(() => {
-                        setNotification(null)
-                    }, 4000)
-                })
-                .catch(error => {
-                    console.log('Failed to delete', error)
-                    setError(`Information of ${newName} has already been removed from server`)
-                    setTimeout(() => {
-                        setNotification(null)
-                    }, 4000)
-                })
-
-
-
-            }
-
-        } else {
-
-            console.log('Name is not in the list, adding it to the list')
-            const newPerson = { id: (persons.length + 1).toString(), name: newName, number: newNumber}
-
-            contactService
-                .createContact(newPerson)
-                .then(response => {
-                    console.log(response)
-                    setPersons(persons.concat(newPerson))
-                })
-
+        contactService.createContact({
+            name: newName,
+            number: newNumber
+        })
+        .then(createdPerson => {
+            setPersons(persons.concat(createdPerson))
             setNotification(`Added ${newName}`)
             setTimeout(() => {
                 setNotification(null)
             }, 4000)
-        }
+        })
+        cleanForm()
     }
 
-    const removeContact = (idToDel) => {
-        const personToDelete = persons.filter((person) => person.id == idToDel)
-        console.log('person to be deleted', personToDelete[0])
-
-        if (confirm(`Delete ${personToDelete[0].name}?`)) {
-            const filteredPersons = persons.filter((person) => person.id != idToDel)
-            console.log('Filtered persons', filteredPersons)
-            const reindexedPersons = []
-            filteredPersons.forEach((person, i) => {
-                person = {id: i + 1, name: person.name, number: person.number}
-                console.log(person)
-                reindexedPersons[i] = person
-            })
-            console.log('Reindexed persons', reindexedPersons)
-
+    const removeContact = (person) => {
+        if (confirm(`Delete ${person.name} from phonebook?`)) {
             contactService
-                .deleteContact(idToDel)
+                .deleteContact(person.id)
                 .then(response => {
-                    console.log('Sent delete request', response)
-                    setPersons(reindexedPersons)
-                    console.log('Successfully deleted.')
+                    setPersons(persons.filter(p => p.id !== person.id))
+                    setNotification(`Deleted contact ${person.name}`)
+                    setTimeout(() => {
+                        setNotification(null)
+                    }, 4000)
                 })
                 .catch(error => {
                     console.log('Failed to delete', error)
@@ -121,6 +106,14 @@ const App = () => {
         console.log('New filter', filter)
     }
 
+    const cleanForm = () => {
+        setNewName('')
+        setNewNumber('') 
+    }
+
+    const byFilterField = p => p.name.toLowerCase().includes(filter.toLowerCase())
+    const personsToShow = filter ? persons.filter(byFilterField) : persons
+
     return (
       <div>
           <h2>Phonebook</h2>
@@ -138,7 +131,10 @@ const App = () => {
           />
 
           <h3>Numbers</h3>
-          <ContactList persons={persons} filter={filter} removeContact={removeContact}/>
+          <ContactList 
+            persons={personsToShow}
+            removeContact={removeContact}
+          />
       </div>
     )
 }
