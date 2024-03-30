@@ -78,7 +78,7 @@ const App = () => {
         if (confirm(`Delete ${person.name} from phonebook?`)) {
             contactService
                 .deleteContact(person.id)
-                .then(response => {
+                .then(() => {
                     setPersons(persons.filter(p => p.id !== person.id))
                     setNotification(`Deleted contact ${person.name}`)
                     setTimeout(() => {
