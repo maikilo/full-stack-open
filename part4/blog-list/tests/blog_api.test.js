@@ -38,12 +38,21 @@ beforeEach(async () => {
 
 
 describe('Blogs from API', () => {
-  test.only('Blogs are returned as json', async () => {
+  test('Blogs are returned as json', async () => {
     const response = await api
           .get('/api/blogs')
           .expect(200)
           .expect('Content-Type', /application\/json/)
     assert.strictEqual(response.body.length, 3)
+  })
+
+  test.only('Blog has field id and not _id', async () => {
+    const response = await api
+          .get('/api/blogs')
+    
+    //response.body.forEach(o => assert(Object.keys(o).includes('id')))
+    const firstItem = response.body[0]
+    assert(Object.keys(firstItem).includes('id'))
   })
 
   after(async () => {
