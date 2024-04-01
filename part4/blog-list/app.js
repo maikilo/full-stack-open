@@ -33,4 +33,6 @@ app.use(middleware.errorHandler)
 
 app.use('/api/blogs', blogRouter)
 
+console.log('env is', config.ENV)
+
 module.exports = app
