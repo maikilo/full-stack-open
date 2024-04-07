@@ -44,7 +44,7 @@ after(async () => {
   await mongoose.connection.close()
 })
 
-describe('Blogs from API', () => {
+describe('Getting blogs from API', () => {
   test('Blogs are returned as json', async () => {
     const response = await api
           .get('/api/blogs')
@@ -63,62 +63,95 @@ describe('Blogs from API', () => {
 })
 
 
-describe('Blogs to API', () => {
+describe('Sending blogs to API', () => {
 
   test('Posting a blog is successful', async () => {
-    const newBlog = Blog({
+    const newBlog = {
       title: "Honey Don't",
       author: "Ringo",
       likes: 0,
       url: "https://google.com/"
-    })
-    console.log('newBlog', newBlog)
-    await newBlog.save()
-    const blogs = await helper.blogsInDb()
-    console.log('blogs', blogs)
-    assert.strictEqual(blogs.length, 4)
+    }
+    await api
+      .post('/api/blogs')
+      .send(newBlog)
+      .expect(201)
+    const blogs = await api.get('/api/blogs')
+    assert.strictEqual(blogs.body.length, 4)
   })
 
   test('Posting a blog without likes sets default likes as 0', async () => {
-    const newBlog = Blog({
+    const newBlog = {
       title: "Honey Don't",
       author: "Ringo",
       url: "https://google.com/"
-    })
-    await newBlog.save()
+    }
+    await api
+      .post('/api/blogs')
+      .send(newBlog)
+      .expect(201)
     const savedBlog = await Blog.findOne({author: "Ringo"})
     const likes = savedBlog.likes
     assert.strictEqual(likes, 0)
   })
 
   test('Posting a blog without title will not be saved due to bad request', async () => {
-    const newBlog = Blog({
+    const newBlog = {
       author: "Ringo",
       url: "https://google.com/"
-    })
+    }
 
     await api
       .post('/api/blogs')
       .send(newBlog)
       .expect(400)
 
-    const response = await api.get('/api/blogs')
+    const response = await api.get('/api/blogs/')
     assert.strictEqual(response.body.length, initialBlogs.length)
   })
 
   test('Posting a blog without url will not be saved due to bad request', async () => {
-    const newBlog = Blog({
+    const newBlog = {
       title: "Honey Don't",
       author: "Ringo"
-    })
+    }
 
     await api
-      .post('/api/blogs')
+      .post('/api/blogs/')
       .send(newBlog)
       .expect(400)
 
-    const response = await api.get('/api/blogs')
+    const response = await api.get('/api/blogs/')
     assert.strictEqual(response.body.length, initialBlogs.length)
+  })
+
+})
+
+describe.only('Deleting blogs from API', () => {
+
+  test.only('Deleting a blog is successful', async () => {
+    const blog = await Blog.findOne({title: "Hey Jude"})
+    const blogId = blog.toJSON().id
+    await api.delete(`/api/blogs/${blogId}`).expect(204)
+    const response = await api.get('/api/blogs/')
+    const blogsAfter = response.body
+    assert.strictEqual(blogsAfter.length, initialBlogs.length - 1)
+  })
+
+})
+
+
+describe.only('Updating blogs using API', () => {
+
+  test.only('Updating a blog is successful', async () => {
+    const blog = await Blog.findOne({title: "Strawberry Fields Forever"})
+    const updatedBlog = {title: blog.title, author: blog.author, url: blog.url, likes: 100, id: blog._id.toString()}
+    await api
+      .put(`/api/blogs/${updatedBlog.id}`)
+      .send(updatedBlog)
+      .expect(200)
+    const response = await api.get(`/api/blogs/${updatedBlog.id}`).expect(200)
+    assert.strictEqual(response.body.likes, 100)
   })
 
 })
