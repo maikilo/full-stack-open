@@ -73,5 +73,16 @@ describe('Blogs to API', () => {
     assert.strictEqual(blogs.length, 4)
   })
 
+  test('Posting a blog without likes sets default likes as 0', async () => {
+    const newBlog = Blog({
+      title: "Honey Don't",
+      author: "Ringo"
+    })
+    await newBlog.save()
+    const savedBlog = await Blog.findOne({author: "Ringo"})
+    const likes = savedBlog.likes
+    assert.strictEqual(likes, 0)
+  })
+
 })
 
