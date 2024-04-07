@@ -2,6 +2,7 @@ const { test, after, describe, beforeEach, } = require('node:test')
 const assert = require('node:assert')
 const mongoose = require('mongoose')
 const supertest = require('supertest')
+const helper = require('../utils/test_helper')
 const app = require('../app')
 
 const api = supertest(app)
@@ -73,7 +74,8 @@ describe('Blogs to API', () => {
     })
     console.log('newBlog', newBlog)
     await newBlog.save()
-    const blogs = await Blog.find({})
+    const blogs = await helper.blogsInDb()
+    console.log('blogs', blogs)
     assert.strictEqual(blogs.length, 4)
   })
 

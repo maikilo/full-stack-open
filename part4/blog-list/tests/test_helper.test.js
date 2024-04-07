@@ -1,11 +1,16 @@
-const { test, describe } = require('node:test')
+const { test, describe, after } = require('node:test')
 const assert = require('node:assert')
-const listHelper = require('../utils/list_helper')
+const mongoose = require('mongoose')
+const testHelper = require('../utils/test_helper')
+
+after(async () => {
+  await mongoose.connection.close()
+})
 
 test('dummy returns one', () => {
   const blogs = []
 
-  const result = listHelper.dummy(blogs)
+  const result = testHelper.dummy(blogs)
   assert.strictEqual(result, 1)
 })
 
@@ -28,7 +33,7 @@ describe('total likes', () => {
 					"id": "98265065635702752056"
 				}
 	]
-		const result = listHelper.totalLikes(blogs)
+		const result = testHelper.totalLikes(blogs)
 		assert.strictEqual(result, 14)
 	})
 })
@@ -49,7 +54,7 @@ describe('favorite blog', () => {
       }
     ]
 
-    const favoriteBlog = listHelper.favoriteBlog(blogs)
+    const favoriteBlog = testHelper.favoriteBlog(blogs)
     assert.deepStrictEqual(favoriteBlog, {
       "title": "Best Blog",
       "author": "Writer",
