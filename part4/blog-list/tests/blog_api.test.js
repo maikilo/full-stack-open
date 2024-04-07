@@ -13,16 +13,19 @@ const initialBlogs = [
     title: 'Hey Jude',
     author: 'Paul',
     likes: 3,
+    url: "https://google.com/"
   },
   {
     title: 'Strawberry Fields Forever',
     author: 'John',
     likes: 2,
+    url: "https://google.com/"
   },
   {
     title: 'While My Guitar Gently Weeps',
     author: 'George',
     likes: 1,
+    url: "https://google.com/"
   }
 ]
 
@@ -66,6 +69,7 @@ describe('Blogs to API', () => {
       title: "Honey Don't",
       author: "Ringo",
       likes: 0,
+      url: "https://google.com/"
     })
     console.log('newBlog', newBlog)
     await newBlog.save()
@@ -76,12 +80,43 @@ describe('Blogs to API', () => {
   test('Posting a blog without likes sets default likes as 0', async () => {
     const newBlog = Blog({
       title: "Honey Don't",
-      author: "Ringo"
+      author: "Ringo",
+      url: "https://google.com/"
     })
     await newBlog.save()
     const savedBlog = await Blog.findOne({author: "Ringo"})
     const likes = savedBlog.likes
     assert.strictEqual(likes, 0)
+  })
+
+  test('Posting a blog without title will not be saved due to bad request', async () => {
+    const newBlog = Blog({
+      author: "Ringo",
+      url: "https://google.com/"
+    })
+
+    await api
+      .post('/api/blogs')
+      .send(newBlog)
+      .expect(400)
+
+    const response = await api.get('/api/blogs')
+    assert.strictEqual(response.body.length, initialBlogs.length)
+  })
+
+  test('Posting a blog without url will not be saved due to bad request', async () => {
+    const newBlog = Blog({
+      title: "Honey Don't",
+      author: "Ringo"
+    })
+
+    await api
+      .post('/api/blogs')
+      .send(newBlog)
+      .expect(400)
+
+    const response = await api.get('/api/blogs')
+    assert.strictEqual(response.body.length, initialBlogs.length)
   })
 
 })

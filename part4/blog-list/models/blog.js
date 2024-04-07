@@ -21,7 +21,10 @@ const blogSchema = new mongoose.Schema({
     type: String,
     default: "Anonymous"
   },
-  url: String,
+  url: {
+    type: String,
+    required: true
+  },
   likes: {
     type: Number,
     default: 0
