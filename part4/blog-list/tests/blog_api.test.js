@@ -1,4 +1,4 @@
-const { test, after, describe, beforeEach } = require('node:test')
+const { test, after, describe, beforeEach, } = require('node:test')
 const assert = require('node:assert')
 const mongoose = require('mongoose')
 const supertest = require('supertest')
@@ -36,6 +36,9 @@ beforeEach(async () => {
   await blogObject.save()
 })
 
+after(async () => {
+  await mongoose.connection.close()
+})
 
 describe('Blogs from API', () => {
   test('Blogs are returned as json', async () => {
@@ -46,16 +49,29 @@ describe('Blogs from API', () => {
     assert.strictEqual(response.body.length, 3)
   })
 
-  test.only('Blog has field id and not _id', async () => {
-    const response = await api
-          .get('/api/blogs')
-    
+  test('Blog has field id and not _id', async () => {
+    const response = await api.get('/api/blogs')
+
     //response.body.forEach(o => assert(Object.keys(o).includes('id')))
     const firstItem = response.body[0]
     assert(Object.keys(firstItem).includes('id'))
   })
-
-  after(async () => {
-    await mongoose.connection.close()
-  })
 })
+
+
+describe('Blogs to API', () => {
+
+  test('Posting a blog is successful', async () => {
+    const newBlog = Blog({
+      title: "Honey Don't",
+      author: "Ringo",
+      likes: 0,
+    })
+    console.log('newBlog', newBlog)
+    await newBlog.save()
+    const blogs = await Blog.find({})
+    assert.strictEqual(blogs.length, 4)
+  })
+
+})
+
