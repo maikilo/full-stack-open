@@ -3,13 +3,18 @@ const usersRouter = require('express').Router()
 const User = require('../models/user')
 
 usersRouter.get('/', async (request, response, next) => {
-  const users = await User.find({}) //.populate('blogs')
-  response.json(users)
+  try {
+    const users = await User.find({}).populate('blogs')
+    response.status(200).json(users)
+  } catch(error) {
+    next(error)
+  }
+  
 })
 
 usersRouter.get('/:id', async (request, response, next) => {
   try {
-    const user = await User.findById(request.params.id) //.populate('blogs')
+    const user = await User.findById(request.params.id).populate('blogs')
     response.status(200).json(user.toJSON())
   } catch(exception) {
     next(exception)
@@ -22,7 +27,6 @@ usersRouter.post('/', async (request, response, next) => {
     const { username, name, password } = request.body
     if (password.length < 3) {
       throw new Error('Invalid password')
-      /* return response.status(400).json({ error: 'Password must be at least three characters long.' }) */
     }
   
     const saltRounds = 10
