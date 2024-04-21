@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react'
 import Blog from './components/Blog'
+import Notification from './components/Notification'
 import blogService from './services/blogs'
 import loginService from './services/login'
 
 const App = () => {
   const [blogs, setBlogs] = useState([])
-  const [errorMessage, setErrorMessage] = useState('')
+  const [error, setErrorMessage] = useState(null)
+  const [notification, setNotification] = useState(null)
   const [newBlog, setNewBlog] = useState('')
   const [showAll, setShowAll] = useState(true)
   const [title, setTitle] = useState('') 
@@ -46,6 +48,10 @@ const App = () => {
       setUser(user)
       setUsername('')
       setPassword('')
+      setNotification(`Logged in user ${username} successfully`)
+      setTimeout(() => {
+          setNotification(null)
+      }, 4000)
     } catch (exception) {
       setErrorMessage('Wrong credentials')
       setTimeout(() => {
@@ -150,6 +156,8 @@ const App = () => {
   return (
     <div>
       <h2>Blogs</h2>
+      <Notification message={notification} type={'notification'} />
+      <Notification message={error} type={'error'} />
       {user === null && loginForm()}
       {user !== null && blogForm()}
     </div>
