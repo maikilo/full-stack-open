@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
 import Blog from './components/Blog'
 import Notification from './components/Notification'
+import LoginForm from './components/LoginForm'
+import BlogForm from './components/BlogForm'
 import blogService from './services/blogs'
 import loginService from './services/login'
 
@@ -10,6 +12,7 @@ const App = () => {
   const [notification, setNotification] = useState(null)
   const [newBlog, setNewBlog] = useState('')
   const [showAll, setShowAll] = useState(true)
+  const [blogFormVisible, setBlogFormVisible] = useState(false)
   const [title, setTitle] = useState('') 
   const [author, setAuthor] = useState('')
   const [url, setUrl] = useState('')
@@ -63,6 +66,8 @@ const App = () => {
   const handleLogout = (event) => {
     event.preventDefault()
     setUser(null)
+    setUsername('')
+    setPassword('')
     window.localStorage.clear()
   }
 
@@ -72,6 +77,9 @@ const App = () => {
       const newBlog = {"title": title, "author": author, "url": url}
       const blogPost = await blogService.create(newBlog)
       console.log('posted blog', blogPost)
+      setTitle('')
+      setAuthor('')
+      setUrl('')
     } catch (exception) {
       setErrorMessage('Error in posting a blog')
       setTimeout(() => {
@@ -81,77 +89,57 @@ const App = () => {
 
   }
 
-  const loginForm = () => (
-    <div>
-    <h3>Log in to application</h3>
-    <form onSubmit={handleLogin}>
+  const loginForm = () => {
+    return (
       <div>
-        username
-          <input
-          type="text"
-          value={username}
-          name="Username"
-          onChange={({ target }) => setUsername(target.value)}
-          />
+        <h3>Log in to application</h3>
+        <LoginForm 
+          username={username}
+          password={password}
+          handleLogin={handleLogin}
+          handleUsernameChange={({ target }) => setUsername(target.value)}
+          handlePasswordChange={({ target }) => setPassword(target.value)}
+        />
       </div>
-      <div>
-        password
-          <input
-          type="password"
-          value={password}
-          name="Password"
-          onChange={({ target }) => setPassword(target.value)}
-          />
-      </div>
-      <button type="submit">login</button>
-    </form>
-    </div>
-  )
+    )
+}
 
-  const blogForm = () => (
-    <div>
-    <p>{user.name} logged in</p> 
-    <button onClick={handleLogout}>logout</button>
-
-    <h3>New blog post</h3>
-    <form onSubmit={postBlog}>
+  const blogForm = () => {
+    const hideWhenVisible = { display: blogFormVisible ? 'none' : '' }
+    const showWhenVisible = { display: blogFormVisible ? '' : 'none' }
+    
+    return (
       <div>
-        title
-          <input
-          type="text"
-          value={title}
-          name="Title"
-          onChange={({ target }) => setTitle(target.value)}
-          />
-      </div>
-      <div>
-        author
-          <input
-          type="text"
-          value={author}
-          name="Author"
-          onChange={({ target }) => setAuthor(target.value)}
-          />
-      </div>
-      <div>
-        url
-          <input
-          type="text"
-          value={url}
-          name="url"
-          onChange={({ target }) => setUrl(target.value)}
-          />
-      </div>
-      <button type="submit">save</button>
-    </form>  
+        <p>{user.name} logged in</p> 
+        <button onClick={handleLogout}>logout</button>
 
-    <h3>Old blog posts</h3>
-    {blogs.map(blog =>
-        <Blog key={blog.id} blog={blog} />
-      )}
+        
+        <div style={showWhenVisible}>
+          <BlogForm 
+            title={title}
+            author={author}
+            url={url}
+            postBlog={postBlog}
+            handleTitleChange={({ target }) => setTitle(target.value)}
+            handleAuthorChange={({ target }) => setAuthor(target.value)}
+            handleUrlChange={({ target }) => setUrl(target.value)}
+          />
+        </div>
+        <div style={hideWhenVisible}>
+          <button onClick={() => setBlogFormVisible(true)}>new blog</button>
+        </div>
+        <div style={showWhenVisible}>
+          <button onClick={() => setBlogFormVisible(false)}>cancel</button>
+        </div>
 
-    </div>
-  )
+        <h3>Old blog posts</h3>
+        {blogs.map(blog =>
+            <Blog key={blog.id} blog={blog} />
+          )}
+
+      </div>
+    )
+  }
   
   return (
     <div>
