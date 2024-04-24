@@ -72,6 +72,26 @@ const App = () => {
     window.localStorage.clear()
   }
 
+  const addLike = id => {
+    const blog = blogs.find(b => b.id === id)
+    console.log('blog', blog)
+    const updatedBlog = { ...blog, likes: blog.likes + 1, user: user.id }
+    console.log('updatedBlog', updatedBlog)
+    blogService
+      .update(blog.id, updatedBlog)
+      .then(returnedBlog => {
+        setBlogs(blogs.map(blog => blog.id !== id ? blog : returnedBlog))
+      })
+      .catch(error => {
+        setErrorMessage(
+          `An error occured when liking ${blog.title}`
+        )
+        setTimeout(() => {
+          setErrorMessage(null)
+        }, 5000)
+      })
+  }
+
   const postBlog = async (event) => {
     event.preventDefault()
     try {
@@ -150,7 +170,7 @@ const App = () => {
         <div>
           <h3>Old blog posts</h3>
           {blogs.map(blog =>
-            <Blog key={blog.id} blog={blog} />
+            <Blog key={blog.id} blog={blog} addLike={addLike} />
           )}
         </div>
       }
