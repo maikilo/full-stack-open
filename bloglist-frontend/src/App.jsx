@@ -21,7 +21,6 @@ const App = () => {
 
   useEffect(() => {
     blogService.getAll().then(blogs => {
-      console.log('blogs', blogs)
       setBlogs( blogs.sort((a, b) => b.likes - a.likes) )
     })  
   }, [])
@@ -91,12 +90,28 @@ const App = () => {
       })
   }
 
+  const deleteBlog = async (id) => {
+    try {
+      const blog = blogs.find(b => b.id === id)
+      if (confirm(`Sure you want to delete ${blog.title}?`)) {
+        const response = await blogService.deleteBlog(id)
+        setBlogs(blogs.filter(b => b.id !== id))
+      }
+    } catch (exception) {
+      setErrorMessage('Error in deleting a blog')
+      setTimeout(() => {
+        setErrorMessage(null)
+      }, 5000)
+    }
+  }
+
   const postBlog = async (event) => {
     event.preventDefault()
     try {
       const newBlog = {"title": title, "author": author, "url": url}
       const blogPost = await blogService.create(newBlog)
       console.log('posted blog', blogPost)
+      setBlogs(blogs.concat(blogPost))
       setTitle('')
       setAuthor('')
       setUrl('')
@@ -106,7 +121,6 @@ const App = () => {
         setErrorMessage(null)
       }, 5000)
     }
-
   }
 
   const loginForm = () => {
@@ -169,7 +183,7 @@ const App = () => {
         <div>
           <h3>Old blog posts</h3>
           {blogs.map(blog =>
-            <Blog key={blog.id} blog={blog} addLike={addLike} />
+            <Blog key={blog.id} blog={blog} addLike={addLike} deleteBlog={deleteBlog} />
           )}
         </div>
       }
