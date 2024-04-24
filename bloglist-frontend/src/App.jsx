@@ -93,8 +93,7 @@ const App = () => {
   const loginForm = () => {
     return (
       <div>
-        <h3>Log in to application</h3>
-        <Togglable buttonLabel='login'>
+        <Togglable showButtonLabel={'login'} hidebuttonLabel={'cancel'}>
           <LoginForm 
             username={username}
             password={password}
@@ -113,10 +112,6 @@ const App = () => {
     
     return (
       <div>
-        <p>{user.name} logged in</p> 
-        <button onClick={handleLogout}>logout</button>
-
-        
         <div style={showWhenVisible}>
           <BlogForm 
             title={title}
@@ -134,12 +129,6 @@ const App = () => {
         <div style={showWhenVisible}>
           <button onClick={() => setBlogFormVisible(false)}>cancel</button>
         </div>
-
-        <h3>Old blog posts</h3>
-        {blogs.map(blog =>
-            <Blog key={blog.id} blog={blog} />
-          )}
-
       </div>
     )
   }
@@ -149,8 +138,22 @@ const App = () => {
       <h2>Blogs</h2>
       <Notification message={notification} type={'notification'} />
       <Notification message={error} type={'error'} />
-      {user === null && loginForm()}
-      {user !== null && blogForm()}
+      {!user && loginForm()}
+      {user && 
+        <div>
+          <p>{user.name} logged in</p> 
+          <button onClick={handleLogout}>logout</button>
+        </div>
+      }
+      {user && blogForm()}
+      {user && 
+        <div>
+          <h3>Old blog posts</h3>
+          {blogs.map(blog =>
+            <Blog key={blog.id} blog={blog} />
+          )}
+        </div>
+      }
     </div>
   )
 
