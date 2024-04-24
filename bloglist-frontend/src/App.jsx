@@ -11,8 +11,6 @@ const App = () => {
   const [blogs, setBlogs] = useState([])
   const [error, setErrorMessage] = useState(null)
   const [notification, setNotification] = useState(null)
-  const [newBlog, setNewBlog] = useState('')
-  const [showAll, setShowAll] = useState(true)
   const [blogFormVisible, setBlogFormVisible] = useState(false)
   const [title, setTitle] = useState('') 
   const [author, setAuthor] = useState('')
@@ -74,13 +72,11 @@ const App = () => {
 
   const addLike = id => {
     const blog = blogs.find(b => b.id === id)
-    console.log('blog', blog)
     const updatedBlog = { ...blog, likes: blog.likes + 1, user: user.id }
-    console.log('updatedBlog', updatedBlog)
     blogService
       .update(blog.id, updatedBlog)
       .then(returnedBlog => {
-        setBlogs(blogs.map(blog => blog.id !== id ? blog : returnedBlog))
+        setBlogs(blogs.map(blog => blog.id !== id ? blog : { ...returnedBlog, user: blog.user}))
       })
       .catch(error => {
         setErrorMessage(
