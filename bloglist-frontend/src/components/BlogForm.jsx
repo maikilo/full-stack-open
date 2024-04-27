@@ -8,7 +8,7 @@ const BlogForm = ({
   handleUrlChange
 }) => {
   return (
-    <form onSubmit={postBlog}>
+    <form onSubmit={postBlog} className='blogList'>
       <div>
         title
         <input
