@@ -12,17 +12,17 @@ const App = () => {
   const [error, setErrorMessage] = useState(null)
   const [notification, setNotification] = useState(null)
   const [blogFormVisible, setBlogFormVisible] = useState(false)
-  const [title, setTitle] = useState('') 
+  const [title, setTitle] = useState('')
   const [author, setAuthor] = useState('')
   const [url, setUrl] = useState('')
-  const [username, setUsername] = useState('') 
+  const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [user, setUser] = useState(null)
 
   useEffect(() => {
     blogService.getAll().then(blogs => {
       setBlogs( blogs.sort((a, b) => b.likes - a.likes) )
-    })  
+    })
   }, [])
 
   useEffect(() => {
@@ -52,7 +52,7 @@ const App = () => {
       setPassword('')
       setNotification(`Logged in user ${username} successfully`)
       setTimeout(() => {
-          setNotification(null)
+        setNotification(null)
       }, 4000)
     } catch (exception) {
       setErrorMessage('Wrong credentials')
@@ -77,7 +77,7 @@ const App = () => {
       .update(blog.id, updatedBlog)
       .then(returnedBlog => {
         setBlogs(blogs
-          .map(blog => blog.id !== id ? blog : { ...returnedBlog, user: blog.user})
+          .map(blog => blog.id !== id ? blog : { ...returnedBlog, user: blog.user })
           .sort((a, b) => b.likes - a.likes))
       })
       .catch(error => {
@@ -108,7 +108,7 @@ const App = () => {
   const postBlog = async (event) => {
     event.preventDefault()
     try {
-      const newBlog = {"title": title, "author": author, "url": url}
+      const newBlog = { 'title': title, 'author': author, 'url': url }
       const blogPost = await blogService.create(newBlog)
       console.log('posted blog', blogPost)
       setBlogs(blogs.concat(blogPost))
@@ -126,8 +126,8 @@ const App = () => {
   const loginForm = () => {
     return (
       <div>
-        <Togglable showButtonLabel={'login'} hidebuttonLabel={'cancel'}>
-          <LoginForm 
+        <Togglable buttonLabel={'login'} >
+          <LoginForm
             username={username}
             password={password}
             handleLogin={handleLogin}
@@ -137,16 +137,16 @@ const App = () => {
         </Togglable>
       </div>
     )
-}
+  }
 
   const blogForm = () => {
     const hideWhenVisible = { display: blogFormVisible ? 'none' : '' }
     const showWhenVisible = { display: blogFormVisible ? '' : 'none' }
-    
+
     return (
       <div>
         <div style={showWhenVisible}>
-          <BlogForm 
+          <BlogForm
             title={title}
             author={author}
             url={url}
@@ -165,21 +165,21 @@ const App = () => {
       </div>
     )
   }
-  
+
   return (
     <div>
       <h2>Blogs</h2>
       <Notification message={notification} type={'notification'} />
       <Notification message={error} type={'error'} />
       {!user && loginForm()}
-      {user && 
+      {user &&
         <div>
-          <p>{user.name} logged in</p> 
+          <p>{user.name} logged in</p>
           <button onClick={handleLogout}>logout</button>
         </div>
       }
       {user && blogForm()}
-      {user && 
+      {user &&
         <div>
           <h3>Old blog posts</h3>
           {blogs.map(blog =>

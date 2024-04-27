@@ -1,44 +1,44 @@
 const BlogForm = ({
-    title,
-    author,
-    url,
-    postBlog,
-    handleTitleChange,
-    handleAuthorChange,
-    handleUrlChange
+  title,
+  author,
+  url,
+  postBlog,
+  handleTitleChange,
+  handleAuthorChange,
+  handleUrlChange
 }) => {
-    return (
+  return (
     <form onSubmit={postBlog}>
       <div>
         title
-          <input
+        <input
           type="text"
           value={title}
           name="Title"
           onChange={handleTitleChange}
-          />
+        />
       </div>
       <div>
         author
-          <input
+        <input
           type="text"
           value={author}
           name="Author"
           onChange={handleAuthorChange}
-          />
+        />
       </div>
       <div>
         url
-          <input
+        <input
           type="text"
           value={url}
           name="url"
           onChange={handleUrlChange}
-          />
+        />
       </div>
       <button type="submit">save</button>
-    </form>  
-    )
+    </form>
+  )
 }
 
 export default BlogForm
