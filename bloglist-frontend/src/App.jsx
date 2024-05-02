@@ -110,7 +110,6 @@ const App = () => {
     try {
       const newBlog = { 'title': title, 'author': author, 'url': url }
       const blogPost = await blogService.create(newBlog)
-      console.log('posted blog', blogPost)
       setBlogs(blogs.concat(blogPost))
       setTitle('')
       setAuthor('')

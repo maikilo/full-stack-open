@@ -15,13 +15,23 @@ const Blog = ({ blog, addLike, deleteBlog }) => {
   const showWhenVisible = { display: detailsVisible ? '' : 'none' }
 
   return (
-    <div style={blogStyle} className='blog'>
-      <div>
+    <div style={blogStyle} className='blog' data-testid='blog'>
+      <div data-testid='mainContent'>
         {blog.title} {blog.author}
-        <button style={hideWhenVisible} onClick={() => setDetailsVisible(true)}>view</button>
-        <button style={showWhenVisible} onClick={() => setDetailsVisible(false)}>hide</button>
+        <button
+          style={hideWhenVisible}
+          onClick={() => setDetailsVisible(true)}
+          data-testid='viewButton'>
+            view
+        </button>
+        <button
+          style={showWhenVisible}
+          onClick={() => setDetailsVisible(false)}
+          data-testid='hideButton'>
+            hide
+        </button>
       </div>
-      <div style={showWhenVisible}>
+      <div style={showWhenVisible} data-testid='togglableContent'>
         <p>url: {blog.url}</p>
         <p>likes: {blog.likes} <button onClick={() => addLike(blog.id)}>like</button></p>
         <p>user: {blog.user.name}</p>
