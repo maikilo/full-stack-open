@@ -12,9 +12,6 @@ const App = () => {
   const [error, setErrorMessage] = useState(null)
   const [notification, setNotification] = useState(null)
   const [blogFormVisible, setBlogFormVisible] = useState(false)
-  const [title, setTitle] = useState('')
-  const [author, setAuthor] = useState('')
-  const [url, setUrl] = useState('')
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [user, setUser] = useState(null)
@@ -105,15 +102,11 @@ const App = () => {
     }
   }
 
-  const postBlog = async (event) => {
+  const postBlog = async (blogObject) => {
     event.preventDefault()
     try {
-      const newBlog = { 'title': title, 'author': author, 'url': url }
-      const blogPost = await blogService.create(newBlog)
+      const blogPost = await blogService.create(blogObject)
       setBlogs(blogs.concat(blogPost))
-      setTitle('')
-      setAuthor('')
-      setUrl('')
     } catch (exception) {
       setErrorMessage('Error in posting a blog')
       setTimeout(() => {
@@ -145,15 +138,7 @@ const App = () => {
     return (
       <div>
         <div style={showWhenVisible}>
-          <BlogForm
-            title={title}
-            author={author}
-            url={url}
-            postBlog={postBlog}
-            handleTitleChange={({ target }) => setTitle(target.value)}
-            handleAuthorChange={({ target }) => setAuthor(target.value)}
-            handleUrlChange={({ target }) => setUrl(target.value)}
-          />
+          <BlogForm postBlog={postBlog} />
         </div>
         <div style={hideWhenVisible}>
           <button onClick={() => setBlogFormVisible(true)}>new blog</button>
