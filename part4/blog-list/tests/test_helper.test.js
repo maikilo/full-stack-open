@@ -64,3 +64,81 @@ describe('favorite blog', () => {
   })
 
 })
+
+describe('Author with most blogs', () => {
+  test('Paul has most blogs, in total 3', () => {
+    const blogs = 
+    [
+      {
+        "title": "Hello Goodbye",
+        "author": "Paul",
+        "likes": 40
+      },
+      {
+        "title": "Blackbird",
+        "author": "Paul",
+        "likes": 3
+      },
+      {
+        "title": "Yesterday",
+        "author": "Paul",
+        "likes": 11
+      },
+      {
+        "title": "Here Comes the Sun",
+        "author": "George",
+        "likes": 30
+      },
+      {
+        "title": "Norwegian Wood",
+        "author": "John",
+        "likes": 7
+      }
+    ]
+
+    const mostBlogs = testHelper.mostBlogs(blogs)
+    console.log('mostBlogs', mostBlogs)
+
+    assert.deepStrictEqual(mostBlogs.author, "Paul")
+
+  })
+})
+
+describe('Author with most likes', () => {
+  test('Paul has most likes, in total 54', () => {
+    const blogs = 
+    [
+      {
+        "title": "Hello Goodbye",
+        "author": "Paul",
+        "likes": 40
+      },
+      {
+        "title": "Blackbird",
+        "author": "Paul",
+        "likes": 3
+      },
+      {
+        "title": "Yesterday",
+        "author": "Paul",
+        "likes": 11
+      },
+      {
+        "title": "Here Comes the Sun",
+        "author": "George",
+        "likes": 30
+      },
+      {
+        "title": "Norwegian Wood",
+        "author": "John",
+        "likes": 7
+      }
+    ]
+
+    const mostLikes = testHelper.mostLikes(blogs)
+    console.log('mostLikes', mostLikes)
+
+    assert.deepStrictEqual(mostLikes.likes, 54)
+
+  })
+})

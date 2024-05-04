@@ -1,5 +1,6 @@
 const Blog = require('../models/blog')
 const User = require('../models/user')
+const _ = require('lodash')
 
 const dummy = (blogs) => {
     return(1)
@@ -32,10 +33,32 @@ const usersInDb = async () => {
   return users.map(u => u.toJSON())
 }
   
+const mostBlogs = (blogs) => {
+    const authorCounts = _.countBy(blogs, 'author')
+    const topAuthor = _.maxBy(_.keys(authorCounts), author => authorCounts[author])
+    return {
+        author: topAuthor,
+        blogs: authorCounts[topAuthor]
+    }
+}
+
+function mostLikes(blogs) {
+    const groupedByAuthor = _.groupBy(blogs, 'author')
+    const authorLikes = _.mapValues(groupedByAuthor, authorBlogs => _.sumBy(authorBlogs, 'likes'))
+    const topAuthor = _.maxBy(_.keys(authorLikes), author => authorLikes[author])
+
+    return {
+        author: topAuthor,
+        likes: authorLikes[topAuthor]
+    }
+}
+  
 module.exports = {
     dummy,
     totalLikes,
     favoriteBlog,
     blogsInDb,
     usersInDb,
+    mostBlogs,
+    mostLikes
 }
