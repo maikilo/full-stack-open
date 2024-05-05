@@ -1,5 +1,6 @@
 const { test, after, describe, beforeEach, } = require('node:test')
 const assert = require('node:assert')
+const bcrypt = require('bcrypt')
 const mongoose = require('mongoose')
 const supertest = require('supertest')
 const helper = require('../utils/test_helper')
@@ -8,6 +9,7 @@ const app = require('../app')
 const api = supertest(app)
 
 const Blog = require('../models/blog')
+const User = require('../models/user')
 
 const initialBlogs = [
   {
@@ -30,7 +32,23 @@ const initialBlogs = [
   }
 ]
 
+const testUser = {
+  name: 'Test User',
+  username: 'testUser',
+  password: 'password',
+}
+
 beforeEach(async () => {
+  await User.deleteMany({})
+  const saltRounds = 10
+  testUser.passwordHash = await bcrypt.hash(testUser.password, saltRounds)
+  const tester = new User(testUser)
+  await tester.save()
+
+  initialBlogs[0].user = tester
+  initialBlogs[1].user = tester
+  initialBlogs[2].user = tester
+
   await Blog.deleteMany({})
   let blogObject = new Blog(initialBlogs[0])
   await blogObject.save()
@@ -38,6 +56,14 @@ beforeEach(async () => {
   await blogObject.save()
   blogObject = new Blog(initialBlogs[2])
   await blogObject.save()
+
+  const savedBlogs = await Blog.find({}).populate('user')
+  const jsonBlogs = savedBlogs.map(blog => blog.toJSON())
+  
+  const blogIds = jsonBlogs.map(blog => blog.id)
+  tester.blogs = tester.blogs.concat(blogIds)
+  await tester.save()
+
 })
 
 after(async () => {
@@ -55,7 +81,6 @@ describe('Getting blogs from API', () => {
 
   test('Blog has field id and not _id', async () => {
     const response = await api.get('/api/blogs')
-
     //response.body.forEach(o => assert(Object.keys(o).includes('id')))
     const firstItem = response.body[0]
     assert(Object.keys(firstItem).includes('id'))
@@ -64,7 +89,7 @@ describe('Getting blogs from API', () => {
 
 
 describe('Sending blogs to API', () => {
-
+  
   test('Posting a blog is successful', async () => {
     const newBlog = {
       title: "Honey Don't",
@@ -72,9 +97,11 @@ describe('Sending blogs to API', () => {
       likes: 0,
       url: "https://google.com/"
     }
+    const auth = await api.post('/api/login').send({username: testUser.username, password: testUser.password})
     await api
       .post('/api/blogs')
       .send(newBlog)
+      .set({Authorization: 'Bearer ' + auth.body.token})
       .expect(201)
     const blogs = await api.get('/api/blogs')
     assert.strictEqual(blogs.body.length, 4)
@@ -86,9 +113,11 @@ describe('Sending blogs to API', () => {
       author: "Ringo",
       url: "https://google.com/"
     }
+    const auth = await api.post('/api/login').send({username: testUser.username, password: testUser.password})
     await api
       .post('/api/blogs')
       .send(newBlog)
+      .set({Authorization: 'Bearer ' + auth.body.token})
       .expect(201)
     const savedBlog = await Blog.findOne({author: "Ringo"})
     const likes = savedBlog.likes
@@ -100,10 +129,11 @@ describe('Sending blogs to API', () => {
       author: "Ringo",
       url: "https://google.com/"
     }
-
+    const auth = await api.post('/api/login').send({username: testUser.username, password: testUser.password})
     await api
       .post('/api/blogs')
       .send(newBlog)
+      .set({Authorization: 'Bearer ' + auth.body.token})
       .expect(400)
 
     const response = await api.get('/api/blogs/')
@@ -115,10 +145,11 @@ describe('Sending blogs to API', () => {
       title: "Honey Don't",
       author: "Ringo"
     }
-
+    const auth = await api.post('/api/login').send({username: testUser.username, password: testUser.password})
     await api
       .post('/api/blogs/')
       .send(newBlog)
+      .set({Authorization: 'Bearer ' + auth.body.token})
       .expect(400)
 
     const response = await api.get('/api/blogs/')
@@ -127,23 +158,24 @@ describe('Sending blogs to API', () => {
 
 })
 
-describe.only('Deleting blogs from API', () => {
-
-  test.only('Deleting a blog is successful', async () => {
+describe('Deleting blogs from API', () => {
+  test('Deleting a blog is successful', async () => {
     const blog = await Blog.findOne({title: "Hey Jude"})
     const blogId = blog.toJSON().id
-    await api.delete(`/api/blogs/${blogId}`).expect(204)
+    const auth = await api.post('/api/login').send({username: testUser.username, password: testUser.password})
+    await api
+      .delete(`/api/blogs/${blogId}`)
+      .set({Authorization: 'Bearer ' + auth.body.token})
+      .expect(204)
     const response = await api.get('/api/blogs/')
     const blogsAfter = response.body
     assert.strictEqual(blogsAfter.length, initialBlogs.length - 1)
   })
-
 })
 
 
-describe.only('Updating blogs using API', () => {
-
-  test.only('Updating a blog is successful', async () => {
+describe('Updating blogs using API', () => {
+  test('Updating a blog is successful', async () => {
     const blog = await Blog.findOne({title: "Strawberry Fields Forever"})
     const updatedBlog = {title: blog.title, author: blog.author, url: blog.url, likes: 100, id: blog._id.toString()}
     await api
@@ -153,6 +185,5 @@ describe.only('Updating blogs using API', () => {
     const response = await api.get(`/api/blogs/${updatedBlog.id}`).expect(200)
     assert.strictEqual(response.body.likes, 100)
   })
-
 })
 
