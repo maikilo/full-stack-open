@@ -1,11 +1,6 @@
 const { test, expect, beforeEach, describe } = require('@playwright/test')
 
 describe('Blog app', () => {
-  const testUser = {
-      name: 'Test User',
-      username: 'testUser',
-      password: 'password',
-    }
       
   beforeEach(async ({ page, request }) => {
     await request.post('http:localhost:3003/api/testing/reset')
@@ -30,8 +25,6 @@ describe('Blog app', () => {
   test('Login form is shown', async ({ page }) => {
     await expect(page.getByRole('button', { name: 'login' })).toBeVisible()
     await page.getByRole('button', { name: 'login' }).click()
-    /* await expect(page.getByText('username')).toBeVisible()
-    await expect(page.getByText('password')).toBeVisible() */
     await expect(page.getByTestId('loginForm')).toBeVisible()
   })
 
@@ -111,8 +104,8 @@ describe('Blog app', () => {
       await page.getByRole('button', { name: 'save' }).click()
 
       // Delete the blog as testUser
-      await page.getByTestId('viewButton').click()
-      await page.getByTestId('deleteButton').click()
+      await page.getByRole('button', { name: 'view' }).click()
+      await page.getByRole('button', { name: 'delete' }).click()
 
       page.on('dialog', async dialog => {
         await expect(dialog.message()).toHaveText('Sure you want to delete East of Eden?')
@@ -129,7 +122,7 @@ describe('Blog app', () => {
       await page.getByTestId('url').fill('https//goodreads.com')
       await page.getByRole('button', { name: 'save' }).click()
 
-      // Log out as otherUser
+      // Log out as testUser
       await page.getByRole('button', { name: 'logout' }).click()
 
       // Login as otherUser
@@ -143,8 +136,56 @@ describe('Blog app', () => {
       await expect(page.getByText('Moby Dick')).toBeVisible()
       await expect(page.getByText('Herman Melville')).toBeVisible()
       await expect(page.getByText('likes: 0')).toBeVisible()
-      await expect(page.getByTestId('likeButton')).toBeVisible()
+      await expect(page.getByRole('button', { name: 'like' })).toBeVisible()
       await expect(page.getByTestId('deleteButton')).not.toBeVisible()
+    })
+
+    test('blogs are ordered by likes', async ({ page }) => {
+      // Create blogs
+      await page.getByRole('button', { name: 'new blog' }).click()
+      await page.getByTestId('title').fill('East of Eden')
+      await page.getByTestId('author').fill('John Steinbeck')
+      await page.getByTestId('url').fill('https//ft.com')
+      await page.getByRole('button', { name: 'save' }).click()
+
+      await expect(page.getByTestId('blog')).toHaveCount(1)
+      await expect(page.getByTestId('blog').filter({ hasText: 'East of Eden' })).toHaveCount(1)
+
+      await page.getByTestId('title').fill('Moby Dick')
+      await page.getByTestId('author').fill('Herman Melville')
+      await page.getByTestId('url').fill('https//goodreads.com')
+      await page.getByRole('button', { name: 'save' }).click()
+
+      await expect(page.getByTestId('blog')).toHaveCount(2)
+      await expect(page.getByTestId('blog').filter({ hasText: 'Moby Dick' })).toHaveCount(1)
+
+      await page.getByTestId('title').fill('Emma')
+      await page.getByTestId('author').fill('Jane Austen')
+      await page.getByTestId('url').fill('https//poetryfoundation.com')
+      await page.getByRole('button', { name: 'save' }).click()
+
+      await expect(page.getByTestId('blog')).toHaveCount(3)
+      await expect(page.getByTestId('blog').filter({ hasText: 'Emma' })).toHaveCount(1)
+
+      // Like Emma two times
+      await page.getByTestId('blog').filter({ hasText: 'Emma' }).getByTestId('viewButton').click()
+      await expect(page.getByTestId('blog').filter({ hasText: 'Emma' }).getByText('likes: 0')).toBeVisible()
+      await page.getByTestId('blog').filter({ hasText: 'Emma' }).getByRole('button', { name: 'like' }).click()
+      await expect(page.getByTestId('blog').filter({ hasText: 'Emma' }).getByText('likes: 1')).toBeVisible()
+      await page.getByTestId('blog').filter({ hasText: 'Emma' }).getByRole('button', { name: 'like' }).click()
+      await expect(page.getByTestId('blog').filter({ hasText: 'Emma' }).getByText('likes: 2')).toBeVisible()
+      
+      // Like Moby Dick once
+      await page.getByTestId('blog').filter({ hasText: 'Moby Dick' }).getByTestId('viewButton').click()
+      await expect(page.getByTestId('blog').filter({ hasText: 'Moby Dick' }).getByText('likes: 0')).toBeVisible()
+      await page.getByTestId('blog').filter({ hasText: 'Moby Dick' }).getByRole('button', { name: 'like' }).click()
+      await expect(page.getByTestId('blog').filter({ hasText: 'Moby Dick' }).getByText('likes: 1')).toBeVisible()
+      
+      // Expect order of blogs to be Emma (2 likes), Moby Dick (1 like), East of Eden (0 likes)
+      await expect(page.getByTestId('blog').first()).toContainText('Emma')
+      await expect(page.getByTestId('blog').nth(1)).toContainText('Moby Dick')
+      await expect(page.getByTestId('blog').last()).toContainText('East of Eden')
+
     })
 
   })

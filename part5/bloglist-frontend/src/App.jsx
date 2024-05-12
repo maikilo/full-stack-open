@@ -164,7 +164,7 @@ const App = () => {
       }
       {user && blogForm()}
       {user &&
-        <div data-testid='blogList'>
+        <div>
           <h3>Old blog posts</h3>
           {blogs.map(blog =>
             <Blog
