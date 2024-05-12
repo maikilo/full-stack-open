@@ -16,6 +16,14 @@ describe('Blog app', () => {
         password: 'password'
       }
     })
+    await request.post('http://localhost:3003/api/users', {
+      data: {
+        name: 'Other User',
+        username: 'otherUser',
+        password: 'drowssap'
+      }
+    })
+
     await page.goto('http://localhost:5173')
   })
 
@@ -110,8 +118,33 @@ describe('Blog app', () => {
         await expect(dialog.message()).toHaveText('Sure you want to delete East of Eden?')
         await dialog.accept()
       })
-      
       await expect(page.getByTestId('blog')).not.toHaveText('East of Eden')
+    })
+
+    test('a user cannot see the delete button for blogs created by another user', async ({ page }) => {
+      // Create blog as testUser
+      await page.getByRole('button', { name: 'new blog' }).click()
+      await page.getByTestId('title').fill('Moby Dick')
+      await page.getByTestId('author').fill('Herman Melville')
+      await page.getByTestId('url').fill('https//goodreads.com')
+      await page.getByRole('button', { name: 'save' }).click()
+
+      // Log out as otherUser
+      await page.getByRole('button', { name: 'logout' }).click()
+
+      // Login as otherUser
+      await page.getByRole('button', { name: 'login' }).click()
+      await page.getByTestId('login-username').fill('otherUser')
+      await page.getByTestId('login-password').fill('drowssap')
+      await page.getByRole('button', { name: 'login' }).click()
+
+      // View the blog as otherUser
+      await page.getByTestId('viewButton').click()
+      await expect(page.getByText('Moby Dick')).toBeVisible()
+      await expect(page.getByText('Herman Melville')).toBeVisible()
+      await expect(page.getByText('likes: 0')).toBeVisible()
+      await expect(page.getByTestId('likeButton')).toBeVisible()
+      await expect(page.getByTestId('deleteButton')).not.toBeVisible()
     })
 
   })
