@@ -24,35 +24,38 @@ const BlogForm = ({
   }
 
   return (
-    <form onSubmit={addBlog} className='blogList'>
+    <form onSubmit={addBlog} className='blogForm' data-testid='blogForm'>
       <div>
         title
         <input
-          type="text"
+          type='text'
           value={title}
-          name="Title"
+          name='Title'
+          data-testid='title'
           onChange={handleTitleChange}
         />
       </div>
       <div>
         author
         <input
-          type="text"
+          type='text'
           value={author}
-          name="Author"
+          name='Author'
+          data-testid='author'
           onChange={handleAuthorChange}
         />
       </div>
       <div>
         url
         <input
-          type="text"
+          type='text'
           value={url}
-          name="url"
+          name='url'
+          data-testid='url'
           onChange={handleUrlChange}
         />
       </div>
-      <button type="submit">save</button>
+      <button type='submit'>save</button>
     </form>
   )
 }

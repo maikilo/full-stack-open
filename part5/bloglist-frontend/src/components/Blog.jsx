@@ -33,9 +33,19 @@ const Blog = ({ blog, addLike, deleteBlog }) => {
       </div>
       <div style={showWhenVisible} data-testid='togglableContent'>
         <p>url: {blog.url}</p>
-        <p>likes: {blog.likes} <button onClick={() => addLike(blog.id)}>like</button></p>
+        <p>likes: {blog.likes}
+          <button
+            onClick={() => addLike(blog.id)}
+            data-testid='likeButton'>
+            like
+          </button>
+        </p>
         <p>user: {blog.user.name}</p>
-        <button onClick={() => deleteBlog(blog.id)}>delete</button>
+        <button
+          onClick={() => deleteBlog(blog.id)}
+          data-testid='deleteButton'>
+          delete
+        </button>
       </div>
 
     </div>
