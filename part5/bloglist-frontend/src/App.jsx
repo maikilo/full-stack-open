@@ -167,7 +167,13 @@ const App = () => {
         <div data-testid='blogList'>
           <h3>Old blog posts</h3>
           {blogs.map(blog =>
-            <Blog key={blog.id} blog={blog} addLike={addLike} deleteBlog={deleteBlog} />
+            <Blog
+              key={blog.id}
+              blog={blog}
+              addLike={addLike}
+              deleteBlog={deleteBlog}
+              loggedInUser={user.name}
+            />
           )}
         </div>
       }
