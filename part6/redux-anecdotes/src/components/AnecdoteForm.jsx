@@ -12,18 +12,18 @@ const AnecdoteForm = () => {
 			event.target.anecdote.value = ''
 			dispatch(setNotification(`Created anecdote '${content}'`))
 			setTimeout(() => {
-					dispatch(deleteNotification())
+				dispatch(deleteNotification())
 			}, 5000)
     }
 
     return (
-        <form onSubmit={addAnecdote}>
-        <h2>create new</h2>
-            <div>
-                <input name='anecdote' />
-            </div>
-            <button type='submit'>create</button>
-        </form>
+			<form onSubmit={addAnecdote}>
+			<h2>create new</h2>
+				<div>
+					<input name='anecdote' />
+				</div>
+				<button type='submit'>create</button>
+			</form>
     )
 }
 
