@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import Blog from './components/Blog'
 import Notification from './components/Notification'
 import LoginForm from './components/LoginForm'
@@ -9,8 +10,6 @@ import loginService from './services/login'
 import { useNotificationValue, useNotificationDispatch } from './NotificationContext'
 
 const App = () => {
-  const [blogs, setBlogs] = useState([])
-  const [error, setErrorMessage] = useState(null)
   const [blogFormVisible, setBlogFormVisible] = useState(false)
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
@@ -24,11 +23,35 @@ const App = () => {
     setTimeout(() => dispatch({ type: 'CLEAR' }), 5000)
   }
 
-  useEffect(() => {
-    blogService.getAll().then(blogs => {
-      setBlogs( blogs.sort((a, b) => b.likes - a.likes) )
-    })
-  }, [])
+  const queryClient = useQueryClient()
+
+  const newBlogMutation = useMutation({
+    mutationFn: blogService.create,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['blogs'] })
+    },
+    onError: () => {
+      setNotification( { message: 'Error in posting a blog', messageType: 'error' })
+    }
+  })
+  const likeBlogMutation = useMutation({
+    mutationFn: blogService.update,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['blogs'] })
+    },
+    onError: (blog) => {
+      setNotification( { message: `An error occured when liking ${blog.title}`, messageType: 'error' })
+    }
+  })
+  const deleteBlogMutation = useMutation({
+    mutationFn: blogService.deleteBlog,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['blogs'] })
+    },
+    onError: () => {
+      setNotification( { message: 'Error in deleting a blog', messageType: 'error' })
+    }
+  })
 
   useEffect(() => {
     const loggedUserJSON = window.localStorage.getItem('loggedBlogAppUser')
@@ -46,21 +69,16 @@ const App = () => {
       const user = await loginService.login({
         username, password,
       })
-
       window.localStorage.setItem(
         'loggedBlogAppUser', JSON.stringify(user)
       )
-
       blogService.setToken(user.token)
       setUser(user)
       setUsername('')
       setPassword('')
-      setNotification(`Logged in user ${username} successfully`)
+      setNotification( { message: `Logged in user ${username} successfully`, messageType: 'notification' })
     } catch (exception) {
-      setErrorMessage('Wrong credentials')
-      setTimeout(() => {
-        setErrorMessage(null)
-      }, 5000)
+      setNotification( { message: 'Wrong credentials', messageType: 'error' })
     }
   }
 
@@ -75,49 +93,18 @@ const App = () => {
   const addLike = id => {
     const blog = blogs.find(b => b.id === id)
     const updatedBlog = { ...blog, likes: blog.likes + 1, user: user.id }
-    blogService
-      .update(blog.id, updatedBlog)
-      .then(returnedBlog => {
-        setBlogs(blogs
-          .map(blog => blog.id !== id ? blog : { ...returnedBlog, user: blog.user })
-          .sort((a, b) => b.likes - a.likes))
-      })
-      .catch(error => {
-        setErrorMessage(
-          `An error occured when liking ${blog.title}`
-        )
-        setTimeout(() => {
-          setErrorMessage(null)
-        }, 5000)
-      })
+    likeBlogMutation.mutate(updatedBlog)
   }
 
   const deleteBlog = async (id) => {
-    try {
-      const blog = blogs.find(b => b.id === id)
-      if (confirm(`Sure you want to delete ${blog.title}?`)) {
-        const response = await blogService.deleteBlog(id)
-        setBlogs(blogs.filter(b => b.id !== id))
-      }
-    } catch (exception) {
-      setErrorMessage('Error in deleting a blog')
-      setTimeout(() => {
-        setErrorMessage(null)
-      }, 5000)
+    const blog = blogs.find(b => b.id === id)
+    if (confirm(`Sure you want to delete ${blog.title}?`)) {
+      deleteBlogMutation.mutate(id)
     }
   }
 
   const postBlog = async (blogObject) => {
-    event.preventDefault()
-    try {
-      const blogPost = await blogService.create(blogObject)
-      setBlogs(blogs.concat(blogPost))
-    } catch (exception) {
-      setErrorMessage('Error in posting a blog')
-      setTimeout(() => {
-        setErrorMessage(null)
-      }, 5000)
-    }
+    newBlogMutation.mutate(blogObject)
   }
 
   const loginForm = () => {
@@ -155,11 +142,21 @@ const App = () => {
     )
   }
 
+  const { isPending, error, data } = useQuery({
+    queryKey: ['blogs'],
+    queryFn: blogService.getAll
+  })
+
+  if (isPending) return 'Loading...'
+
+  if (error) return 'An error has occurred: ' + error.message
+
+  const blogs = data.sort((a, b) => b.likes - a.likes)
+
   return (
     <div>
       <h2>Blogs</h2>
-      <Notification message={notification} type={'notification'} />
-      <Notification message={error} type={'error'} />
+      <Notification message={notification.message} type={notification.messageType} />
       {!user && loginForm()}
       {user &&
         <div>

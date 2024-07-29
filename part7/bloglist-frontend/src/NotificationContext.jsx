@@ -5,6 +5,7 @@ export const NotificationContext = createContext()
 const notificationReducer = (state, action) => {
   switch (action.type) {
   case 'CREATE':
+    console.log('action.payload', action.payload)
     return action.payload
   case 'CLEAR':
     return ''
