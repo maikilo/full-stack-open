@@ -8,22 +8,27 @@ import Togglable from './components/Togglable'
 import blogService from './services/blogs'
 import loginService from './services/login'
 import { useNotificationValue, useNotificationDispatch } from './NotificationContext'
+import { useUserValue, useUserDispatch } from './UserContext'
+
 
 const App = () => {
   const [blogFormVisible, setBlogFormVisible] = useState(false)
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
-  const [user, setUser] = useState(null)
+  //const [user, setUser] = useState(null)
 
   const notification = useNotificationValue()
-  const dispatch = useNotificationDispatch()
+  const notificationDispatch = useNotificationDispatch()
 
-  const setNotification = (payload) => {
-    dispatch({ payload, type: 'CREATE' })
-    setTimeout(() => dispatch({ type: 'CLEAR' }), 5000)
-  }
+  const user = useUserValue()
+  const userDispatch = useUserDispatch()
 
   const queryClient = useQueryClient()
+
+  const setNotification = (payload) => {
+    notificationDispatch({ payload, type: 'CREATE' })
+    setTimeout(() => notificationDispatch({ type: 'CLEAR' }), 5000)
+  }
 
   const newBlogMutation = useMutation({
     mutationFn: blogService.create,
@@ -34,6 +39,7 @@ const App = () => {
       setNotification( { message: 'Error in posting a blog', messageType: 'error' })
     }
   })
+
   const likeBlogMutation = useMutation({
     mutationFn: blogService.update,
     onSuccess: () => {
@@ -43,6 +49,7 @@ const App = () => {
       setNotification( { message: `An error occured when liking ${blog.title}`, messageType: 'error' })
     }
   })
+
   const deleteBlogMutation = useMutation({
     mutationFn: blogService.deleteBlog,
     onSuccess: () => {
@@ -52,43 +59,6 @@ const App = () => {
       setNotification( { message: 'Error in deleting a blog', messageType: 'error' })
     }
   })
-
-  useEffect(() => {
-    const loggedUserJSON = window.localStorage.getItem('loggedBlogAppUser')
-    if (loggedUserJSON) {
-      const user = JSON.parse(loggedUserJSON)
-      setUser(user)
-      blogService.setToken(user.token)
-    }
-  }, [])
-
-  const handleLogin = async (event) => {
-    event.preventDefault()
-    console.log('logging in with', username, password)
-    try {
-      const user = await loginService.login({
-        username, password,
-      })
-      window.localStorage.setItem(
-        'loggedBlogAppUser', JSON.stringify(user)
-      )
-      blogService.setToken(user.token)
-      setUser(user)
-      setUsername('')
-      setPassword('')
-      setNotification( { message: `Logged in user ${username} successfully`, messageType: 'notification' })
-    } catch (exception) {
-      setNotification( { message: 'Wrong credentials', messageType: 'error' })
-    }
-  }
-
-  const handleLogout = (event) => {
-    event.preventDefault()
-    setUser(null)
-    setUsername('')
-    setPassword('')
-    window.localStorage.clear()
-  }
 
   const addLike = id => {
     const blog = blogs.find(b => b.id === id)
@@ -105,6 +75,41 @@ const App = () => {
 
   const postBlog = async (blogObject) => {
     newBlogMutation.mutate(blogObject)
+  }
+
+  useEffect(() => {
+    const loggedUserJSON = window.localStorage.getItem('loggedBlogAppUser')
+    if (loggedUserJSON) {
+      const parsedUser = JSON.parse(loggedUserJSON)
+      blogService.setToken(parsedUser.token)
+    }
+  }, [])
+
+  const handleLogin = async (event) => {
+    event.preventDefault()
+    try {
+      const user = await loginService.login({
+        username, password,
+      })
+      window.localStorage.setItem(
+        'loggedBlogAppUser', JSON.stringify(user)
+      )
+      blogService.setToken(user.token)
+      userDispatch({ user, type: 'LOGIN' })
+      setNotification( { message: `Logged in user ${username} successfully`, messageType: 'notification' })
+      setUsername('')
+      setPassword('')
+    } catch (exception) {
+      setNotification( { message: 'Wrong credentials', messageType: 'error' })
+    }
+  }
+
+  const handleLogout = (event) => {
+    event.preventDefault()
+    userDispatch({ type: 'LOGOUT' })
+    setUsername('')
+    setPassword('')
+    window.localStorage.clear()
   }
 
   const loginForm = () => {

@@ -5,7 +5,6 @@ export const NotificationContext = createContext()
 const notificationReducer = (state, action) => {
   switch (action.type) {
   case 'CREATE':
-    console.log('action.payload', action.payload)
     return action.payload
   case 'CLEAR':
     return ''
@@ -25,11 +24,11 @@ export const NotificationContextProvider = (props) => {
 }
 
 export const useNotificationValue = () => {
-  const notificationState = useContext(NotificationContext)
-  return notificationState[0]
+  const notificationValueAndDispatch = useContext(NotificationContext)
+  return notificationValueAndDispatch[0]
 }
 
 export const useNotificationDispatch = () => {
-  const notificationState = useContext(NotificationContext)
-  return notificationState[1]
+  const notificationValueAndDispatch = useContext(NotificationContext)
+  return notificationValueAndDispatch[1]
 }
