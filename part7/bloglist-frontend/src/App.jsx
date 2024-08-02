@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Routes, Route, Link, useMatch, useNavigate } from 'react-router-dom'
+import { Routes, Route, Link, Navigate, useMatch, useNavigate } from 'react-router-dom'
 
 import Blog from './components/Blog'
 import Notification from './components/Notification'
@@ -14,74 +14,10 @@ import { useNotificationValue, useNotificationDispatch } from './NotificationCon
 import { useUserValue, useUserDispatch } from './UserContext'
 
 
-const Blogs = () => {
+const Blogs = ({ setNotification }) => {
   const [blogFormVisible, setBlogFormVisible] = useState(false)
-  const [username, setUsername] = useState('')
-  const [password, setPassword] = useState('')
-
-  const notification = useNotificationValue()
-  const notificationDispatch = useNotificationDispatch()
-
-  const user = useUserValue()
-  const userDispatch = useUserDispatch()
-
   const queryClient = useQueryClient()
-
-  const setNotification = (payload) => {
-    notificationDispatch({ payload, type: 'CREATE' })
-    setTimeout(() => notificationDispatch({ type: 'CLEAR' }), 5000)
-  }
-
-  useEffect(() => {
-    const loggedUserJSON = window.localStorage.getItem('loggedBlogAppUser')
-    if (loggedUserJSON) {
-      const parsedUser = JSON.parse(loggedUserJSON)
-      blogService.setToken(parsedUser.token)
-    }
-  }, [])
-
-  const handleLogin = async (event) => {
-    event.preventDefault()
-    try {
-      const user = await loginService.login({
-        username, password,
-      })
-      window.localStorage.setItem(
-        'loggedBlogAppUser', JSON.stringify(user)
-      )
-      blogService.setToken(user.token)
-      userDispatch({ user, type: 'LOGIN' })
-      setNotification( { message: `Logged in user ${username} successfully`, messageType: 'notification' })
-      setUsername('')
-      setPassword('')
-    } catch (exception) {
-      setNotification( { message: 'Wrong credentials', messageType: 'error' })
-    }
-  }
-
-  const handleLogout = (event) => {
-    event.preventDefault()
-    userDispatch({ type: 'LOGOUT' })
-    setUsername('')
-    setPassword('')
-    window.localStorage.clear()
-  }
-
-  const loginForm = () => {
-    return (
-      <div>
-        <Togglable buttonLabel={'login'} >
-          <LoginForm
-            username={username}
-            password={password}
-            handleLogin={handleLogin}
-            handleUsernameChange={({ target }) => setUsername(target.value)}
-            handlePasswordChange={({ target }) => setPassword(target.value)}
-          />
-        </Togglable>
-      </div>
-    )
-  }
+  const user = useUserValue()
 
   const newBlogMutation = useMutation({
     mutationFn: blogService.create,
@@ -162,30 +98,19 @@ const Blogs = () => {
 
   return (
     <div>
-      <h2>Blogs</h2>
-      <Notification message={notification.message} type={notification.messageType} />
-      {!user && loginForm()}
-      {user &&
-        <div>
-          <p>{user.name} logged in</p>
-          <button onClick={handleLogout}>logout</button>
-        </div>
-      }
-      {user && blogForm()}
-      {user &&
-        <div>
-          <h3>Old blog posts</h3>
-          {blogs.map(blog =>
-            <Blog
-              key={blog.id}
-              blog={blog}
-              addLike={addLike}
-              deleteBlog={deleteBlog}
-              loggedInUser={user.name}
-            />
-          )}
-        </div>
-      }
+      {blogForm()}
+      <div>
+        <h3>Old blog posts</h3>
+        {blogs.map(blog =>
+          <Blog
+            key={blog.id}
+            blog={blog}
+            addLike={addLike}
+            deleteBlog={deleteBlog}
+            loggedInUser={'user.name'}
+          />
+        )}
+      </div>
     </div>
   )
 }
@@ -202,13 +127,63 @@ const Menu = () => {
   )
 }
 
+
 const App = () => {
+  const notification = useNotificationValue()
+  const notificationDispatch = useNotificationDispatch()
+
+  const user = useUserValue()
+  const userDispatch = useUserDispatch()
+
+  const navigate = useNavigate()
+
+  const setNotification = (payload) => {
+    notificationDispatch({ payload, type: 'CREATE' })
+    setTimeout(() => notificationDispatch({ type: 'CLEAR' }), 5000)
+  }
+
+  useEffect(() => {
+    const loggedUserJSON = window.localStorage.getItem('loggedBlogAppUser')
+    if (loggedUserJSON) {
+      const parsedUser = JSON.parse(loggedUserJSON)
+      blogService.setToken(parsedUser.token)
+    }
+  }, [])
+
+  const login = async ({ username, password }) => {
+    try {
+      const newUser = await loginService.login({ username, password })
+      window.localStorage.setItem('loggedBlogAppUser', JSON.stringify(newUser))
+      blogService.setToken(newUser.token)
+      userDispatch({ payload: newUser, type: 'LOGIN' })
+      navigate('/', { replace: true })
+      setNotification( { message: `Logged in user ${newUser.username} successfully`, messageType: 'notification' })
+    } catch (exception) {
+      setNotification( { message: 'Wrong credentials', messageType: 'error' })
+    }
+  }
+
+  const logout = (event) => {
+    event.preventDefault()
+    userDispatch({ type: 'LOGOUT' })
+    window.localStorage.clear()
+  }
+
   return (
     <div>
-      <Menu />
+      {user && <Menu />}
+      <h2>Blogs</h2>
+      <Notification message={notification.message} type={notification.messageType} />
+      {user &&
+        <div>
+          <p>{user.name} logged in</p>
+          <button onClick={logout}>logout</button>
+        </div>
+      }
       <Routes>
-        <Route path="/" element={<Blogs />} />
-        <Route path="/users" element={<Users />} />
+        <Route path="/" element={user ? <Blogs setNotification={setNotification} /> : <Navigate replace to="/login" />} />
+        <Route path="/login" element={user ? <Navigate replace to="/" /> : <LoginForm onLogin={login}/> } />
+        <Route path="/users" element={user ? <Users /> : <Navigate replace to="/login" />} />
       </Routes>
     </div>
   )
