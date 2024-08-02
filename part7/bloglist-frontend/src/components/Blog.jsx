@@ -18,7 +18,7 @@ const Blog = ({ blog, addLike, deleteBlog, loggedInUser }) => {
   return (
     <div style={blogStyle} className='blog' data-testid='blog'>
       <div data-testid='mainContent'>
-        {blog.title} {blog.author}
+        {blog.title} {blog.author} {blog.id}
         <button
           style={hideWhenVisible}
           onClick={() => setDetailsVisible(true)}

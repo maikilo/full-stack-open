@@ -1,4 +1,4 @@
-import { useParams, useMatch } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import getAll from '../services/users'
 

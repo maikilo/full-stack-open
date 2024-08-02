@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Routes, Route, Link, Navigate, useMatch, useNavigate } from 'react-router-dom'
 
 import Blog from './components/Blog'
+import BlogDetails from './components/BlogDetails'
 import Notification from './components/Notification'
 import LoginForm from './components/LoginForm'
 import BlogForm from './components/BlogForm'
@@ -185,6 +186,7 @@ const App = () => {
         <Route path="/login" element={user ? <Navigate replace to="/" /> : <LoginForm onLogin={login}/> } />
         <Route path="/users" element={user ? <Users /> : <Navigate replace to="/login" />} />
         <Route path="/users/:username" element={<User />} />
+        <Route path="/blogs/:id" element={<BlogDetails />} />
       </Routes>
     </div>
   )
