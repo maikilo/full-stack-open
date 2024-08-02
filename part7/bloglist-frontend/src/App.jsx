@@ -122,14 +122,15 @@ const Blogs = ({ setNotification }) => {
   )
 }
 
-const Menu = () => {
+const Menu = ({ user, logout }) => {
   const padding = {
-    paddingRight: 5
+    paddingRight: 10
   }
   return (
     <div>
       <Link style={padding} to="/">Blogs</Link>
-      <Link style={padding} to="/users">Users</Link>
+      <Link style={padding} to="/users">Users</Link> <span style={padding}>{user.name} logged in</span>
+      <button onClick={logout}>logout</button>
     </div>
   )
 }
@@ -178,15 +179,9 @@ const App = () => {
 
   return (
     <div>
-      {user && <Menu />}
+      {user && <Menu user={user} logout={logout}/>}
       <h2>Blogs</h2>
       <Notification message={notification.message} type={notification.messageType} />
-      {user &&
-        <div>
-          <p>{user.name} logged in</p>
-          <button onClick={logout}>logout</button>
-        </div>
-      }
       <Routes>
         <Route path="/" element={user ? <Blogs setNotification={setNotification} /> : <Navigate replace to="/login" />} />
         <Route path="/login" element={user ? <Navigate replace to="/" /> : <LoginForm onLogin={login}/> } />
