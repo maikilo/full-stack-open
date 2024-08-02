@@ -6,8 +6,8 @@ import Blog from './components/Blog'
 import Notification from './components/Notification'
 import LoginForm from './components/LoginForm'
 import BlogForm from './components/BlogForm'
-import Togglable from './components/Togglable'
 import Users from './components/Users'
+import User from './components/User'
 import blogService from './services/blogs'
 import loginService from './services/login'
 import { useNotificationValue, useNotificationDispatch } from './NotificationContext'
@@ -184,6 +184,7 @@ const App = () => {
         <Route path="/" element={user ? <Blogs setNotification={setNotification} /> : <Navigate replace to="/login" />} />
         <Route path="/login" element={user ? <Navigate replace to="/" /> : <LoginForm onLogin={login}/> } />
         <Route path="/users" element={user ? <Users /> : <Navigate replace to="/login" />} />
+        <Route path="/users/:username" element={<User />} />
       </Routes>
     </div>
   )

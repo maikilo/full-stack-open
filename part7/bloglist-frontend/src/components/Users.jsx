@@ -1,3 +1,4 @@
+import { Router, Route, Routes, Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import getAll from '../services/users'
 
@@ -24,8 +25,8 @@ const Users = () => {
           </tr>
           {users.map(user => (
             <tr key={user.username}>
-              <td>{user.name}</td>
-              <td>{user.blogs.length}</td>
+              <td><Link to={`/users/${user.username}`}>{user.name}</Link></td>
+              <td align='right'>{user.blogs.length}</td>
             </tr>
           ))}
         </tbody>
