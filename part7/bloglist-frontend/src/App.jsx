@@ -97,19 +97,25 @@ const Blogs = ({ setNotification }) => {
 
   const blogs = data.sort((a, b) => b.likes - a.likes)
 
+  const blogStyle = {
+    paddingTop: 10,
+    paddingBottom: 10,
+    paddingLeft: 10,
+    paddingRight: 100,
+    border: 'solid',
+    borderWidth: 1,
+    marginBottom: 5
+  }
+
   return (
     <div>
       {blogForm()}
       <div>
         <h3>Old blog posts</h3>
         {blogs.map(blog =>
-          <Blog
-            key={blog.id}
-            blog={blog}
-            addLike={addLike}
-            deleteBlog={deleteBlog}
-            loggedInUser={'user.name'}
-          />
+          <div key={blog.id} style={blogStyle}>
+            <Link to={`/blogs/${blog.id}`}>{blog.title}</Link>
+          </div>
         )}
       </div>
     </div>
