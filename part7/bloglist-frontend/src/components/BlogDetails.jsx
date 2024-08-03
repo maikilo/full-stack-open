@@ -1,16 +1,32 @@
+import { useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient  } from '@tanstack/react-query'
 import blogService from '../services/blogs'
+import { useNotificationDispatch } from '../NotificationContext'
 
 
 const BlogDetails = () => {
+  const notificationDispatch = useNotificationDispatch()
+
+  const setNotification = (payload) => {
+    notificationDispatch({ payload, type: 'CREATE' })
+    setTimeout(() => notificationDispatch({ type: 'CLEAR' }), 5000)
+  }
+
+  const [comment, setComment] = useState('')
+  const handleChange = ({ target }) => setComment(target.value)
+
   const id = useParams().id
+
   const queryClient = useQueryClient()
 
-  const likeBlogMutation = useMutation({
+  const changeBlogMutation = useMutation({
     mutationFn: blogService.update,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['blogs'] })
+    },
+    onError: () => {
+      setNotification( { message: 'An error occured when liking or commenting', messageType: 'error' })
     }
   })
 
@@ -30,14 +46,33 @@ const BlogDetails = () => {
     return null
   }
 
+  const addComment = () => {
+    if (comment === '') return
+    const oldComments = blog.comments ? blog.comments : []
+    changeBlogMutation.mutate({ ...blog, comments: [...oldComments, comment], user: blog.user.id })
+    setComment('')
+  }
+
   return (
     <div>
       <h2>{blog.title}</h2>
       <a href={blog.url}>{blog.url}</a>
       <p>likes: {blog.likes}
-        <button onClick={() => likeBlogMutation.mutate({ ...blog, likes: blog.likes + 1, user: blog.user.id })}>like</button>
+        <button onClick={() => changeBlogMutation.mutate({ ...blog, likes: blog.likes + 1, user: blog.user.id })}>like</button>
       </p>
       <p>added by: {blog.user.name}</p>
+      <h3>comments</h3>
+      <div>
+        <input
+          type='text'
+          value={comment}
+          onChange={handleChange}
+        />
+        <button onClick={addComment}>add comment</button>
+      </div>
+      <ul>
+        {blog.comments.map((comment, index) => <li key={index}>{comment}</li>)}
+      </ul>
     </div>
   )
 }
