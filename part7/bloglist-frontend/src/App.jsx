@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Routes, Route, Link, Navigate, useMatch, useNavigate } from 'react-router-dom'
+import { Routes, Route, Link, Navigate, useNavigate } from 'react-router-dom'
 
-import Blog from './components/Blog'
 import BlogDetails from './components/BlogDetails'
 import Notification from './components/Notification'
 import LoginForm from './components/LoginForm'
@@ -18,7 +17,6 @@ import { useUserValue, useUserDispatch } from './UserContext'
 const Blogs = ({ setNotification }) => {
   const [blogFormVisible, setBlogFormVisible] = useState(false)
   const queryClient = useQueryClient()
-  const user = useUserValue()
 
   const newBlogMutation = useMutation({
     mutationFn: blogService.create,
@@ -29,39 +27,6 @@ const Blogs = ({ setNotification }) => {
       setNotification( { message: 'Error in posting a blog', messageType: 'error' })
     }
   })
-
-  const likeBlogMutation = useMutation({
-    mutationFn: blogService.update,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['blogs'] })
-    },
-    onError: (blog) => {
-      setNotification( { message: `An error occured when liking ${blog.title}`, messageType: 'error' })
-    }
-  })
-
-  const deleteBlogMutation = useMutation({
-    mutationFn: blogService.deleteBlog,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['blogs'] })
-    },
-    onError: () => {
-      setNotification( { message: 'Error in deleting a blog', messageType: 'error' })
-    }
-  })
-
-  const addLike = id => {
-    const blog = blogs.find(b => b.id === id)
-    const updatedBlog = { ...blog, likes: blog.likes + 1, user: user.id }
-    likeBlogMutation.mutate(updatedBlog)
-  }
-
-  const deleteBlog = async (id) => {
-    const blog = blogs.find(b => b.id === id)
-    if (confirm(`Sure you want to delete ${blog.title}?`)) {
-      deleteBlogMutation.mutate(id)
-    }
-  }
 
   const postBlog = async (blogObject) => {
     newBlogMutation.mutate(blogObject)
@@ -97,23 +62,13 @@ const Blogs = ({ setNotification }) => {
 
   const blogs = data.sort((a, b) => b.likes - a.likes)
 
-  const blogStyle = {
-    paddingTop: 10,
-    paddingBottom: 10,
-    paddingLeft: 10,
-    paddingRight: 100,
-    border: 'solid',
-    borderWidth: 1,
-    marginBottom: 5
-  }
-
   return (
     <div>
       {blogForm()}
       <div>
         <h3>Old blog posts</h3>
         {blogs.map(blog =>
-          <div key={blog.id} style={blogStyle}>
+          <div key={blog.id} className='blog'>
             <Link to={`/blogs/${blog.id}`}>{blog.title}</Link>
           </div>
         )}
@@ -129,7 +84,7 @@ const Menu = ({ user, logout }) => {
   return (
     <div>
       <Link style={padding} to="/">Blogs</Link>
-      <Link style={padding} to="/users">Users</Link> <span style={padding}>{user.name} logged in</span>
+      <Link style={padding} to="/users">Users</Link> <span>{user.name} logged in</span>
       <button onClick={logout}>logout</button>
     </div>
   )
